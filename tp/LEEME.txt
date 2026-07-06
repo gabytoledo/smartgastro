@@ -1,0 +1,3 @@
+profee el ejemplo pedido esta aca el de la consigna principal se abre con el bash "tp.py" o lo podes abrir con vscode es el sistema ejemplo en pyton asi nomas sin tkniter
+despues tenes la version tkinter con el bash "smartgastro_gui.py" esta version es el mismo sistema con interfaz visual y con "app.py" tenes una api basica en flasq y la ultima
+"tkinter_smartgastro_api.py" que combina la api rest en tkinter para una interfaz visual siguiendo la consigna

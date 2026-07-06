@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link
+    rel="icon"
+    type="image/x-icon"
+    href="{{ url_for('static', filename='favicon.png') }}"
+>
+    <meta charset="UTF-8">
+    <title>Login - SmartGastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="login-page">
+
+    <div class="login-card">
+
+        <div class="login-logo">🥗 SmartGastro</div>
+
+        <h1>Iniciar sesión</h1>
+
+        <p class="login-subtitle">
+            Panel privado de gestión gastronómica
+        </p>
+
+        {% if error %}
+            <div class="login-error">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+
+            <label>Email</label>
+            <input type="email" name="email" placeholder="admin@smartgastro.com" required>
+
+            <br><br>
+
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+
+            <br><br>
+
+            <button class="btn btn-primary login-button" type="submit">
+                Ingresar al sistema
+            </button>
+
+        </form>
+
+        <p class="login-demo">
+            Usuario demo: admin@smartgastro.com<br>
+            Contraseña: admin123
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

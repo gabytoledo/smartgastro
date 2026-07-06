@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link
+    rel="icon"
+    type="image/x-icon"
+    href="{{ url_for('static', filename='favicon.png') }}"
+>
+    <meta charset="UTF-8">
+    <title>SmartGastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{{ clima.clase_clima }}">
+<div id="toast" class="toast"></div>
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="logo">🥗 SmartGastro</div>
+
+        <a class="nav-item active" href="/">🏠 Dashboard</a>
+        <a class="nav-item" href="#inventario">📦 Inventario</a>
+        <a class="nav-item" href="#ventas">🛒 Historial de ventas</a>
+        <a class="nav-item" href="#clima">🌦️ Clima</a>
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <span>👤 Hola, {{ session["usuario_nombre"] }}</span>
+            <a class="btn btn-red" href="/logout">Cerrar sesión</a>
+        </header>
+        <div class="welcome-banner">
+
+    <h1>
+        ¡Bienvenido {{ session["usuario_nombre"] }}!
+    </h1>
+
+    <p>
+        Panel de gestión inteligente para Food Trucks.
+    </p>
+
+</div>
+
+        <section class="content">
+
+            <div class="card" id="clima">
+                <h2>🌦️ Estado climático</h2>
+              <p class="location-text">
+    📍 {{ nombre_ubicacion }}
+    <br>
+    <small>
+        Coordenadas:
+        {{ "%.4f"|format(ubicacion.latitud) }},
+        {{ "%.4f"|format(ubicacion.longitud) }}
+    </small>
+</p>
+
+<button id="btn-ubicacion" class="btn btn-blue">
+    📍 Usar mi ubicación actual
+</button>
+
+<p style="color:#64748b;">
+🕒 Última actualización:
+{{ ultima_actualizacion }}
+</p>
+                {% if clima.disponible %}
+
+                    <div class="weather-grid">
+                        <div class="risk-panel">
+    <span>Riesgo climático</span>
+
+    {% if clima.riesgo == "Alto" %}
+        <strong class="risk-high">🔴 {{ clima.riesgo }}</strong>
+        <div class="risk-bar">
+            <div class="risk-fill high"></div>
+        </div>
+    {% elif clima.riesgo == "Bajo" %}
+        <strong class="risk-low">🟢 {{ clima.riesgo }}</strong>
+        <div class="risk-bar">
+            <div class="risk-fill low"></div>
+        </div>
+    {% else %}
+        <strong>⚪ {{ clima.riesgo }}</strong>
+        <div class="risk-bar">
+            <div class="risk-fill unknown"></div>
+        </div>
+    {% endif %}
+</div>
+                        <div class="weather-main">
+                            <div class="weather-icon">
+                         {{ clima.emoji }}
+                         </div>
+                            <div>
+                                <div class="weather-temp">{{ clima.temperatura }}°C</div>
+                               <strong>{{ clima.descripcion }}</strong>
+                            <p>{{ clima.mensaje }}</p>
+                            </div>
+                        </div>
+
+                        <div class="weather-box">
+                            🌡️
+                            <h3>Temperatura</h3>
+                            <strong>{{ clima.temperatura }} °C</strong>
+                        </div>
+
+                        <div class="weather-box">
+                            🌧️
+                            <h3>Lluvia</h3>
+                            <strong>{{ clima.lluvia }} mm</strong>
+                        </div>
+
+                        <div class="weather-box">
+                            💨
+                            <h3>Viento</h3>
+                            <strong>{{ clima.viento }} km/h</strong>
+                        </div>
+
+                    </div>
+
+                    {% if clima.alerta %}
+                        <div class="weather-alert">
+                            ⚠️ Recomendación: reducir producción para evitar merma por lluvia.
+                        </div>
+                    {% else %}
+                        <div class="weather-ok">
+                            ✅ Recomendación: producción normal.
+                        </div>
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="weather-alert">
+                        {{ clima.mensaje }}
+                    </div>
+
+                {% endif %}
+            </div>
+
+
+            <div class="stats-grid">
+
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <h3>{{ cantidad_productos }}</h3>
+        <p>Productos</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🛒</div>
+        <h3>{{ cantidad_ventas }}</h3>
+        <p>Ventas</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <h3>{{ stock_total }}</h3>
+        <p>Stock total</p>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <h3>${{ "%.2f"|format(valor_stock) }}</h3>
+        <p>Valor del inventario</p>
+    </div>
+
+</div>
+            <div class="card">
+                <h2>➕ Agregar producto</h2>
+
+                <form id="form-producto" class="form-grid">
+
+                    <div>
+                        <label>Nombre</label>
+                        <input type="text" name="nombre" placeholder="Ej: Hamburguesa" required>
+                    </div>
+
+                    <div>
+                        <label>Precio</label>
+                        <input type="number" step="0.01" name="precio" placeholder="Ej: 5000" required>
+                    </div>
+
+                    <div>
+                        <label>Stock</label>
+                        <input type="number" name="stock" placeholder="Ej: 20" required>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">
+                        📦 Agregar
+                    </button>
+
+                </form>
+            </div>
+
+            <div class="card" id="inventario">
+                <h2>📦 Inventario actual</h2>
+
+                <table class="table">
+                    <tr>
+                        <th>ID</th>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                    {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.id }}</td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>${{ producto.precio }}</td>
+
+                        <td>
+                            {% if producto.stock <= 5 %}
+                            <span id="stock-{{ producto.id }}" class="stock-low">{{ producto.stock }}</span>
+                            {% else %}
+                            <span id="stock-{{ producto.id }}" class="stock-ok">{{ producto.stock }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="actions">
+                                <a class="btn btn-blue btn-small" href="/productos/editar/{{ producto.id }}">
+                                    ✏️ Editar
+                                </a>
+
+                                <a
+                                    class="btn btn-red btn-small"
+                                    href="/productos/eliminar/{{ producto.id }}"
+                                    onclick="return confirm('¿Seguro que querés eliminar este producto?')"
+                                >
+                                    🗑️ Eliminar
+                                </a>
+                            </div>
+
+                           <form class="sell-form form-venta" data-producto-id="{{ producto.id }}">
+                                <input type="number" name="cantidad" min="1" placeholder="Cant." required>
+                                <button class="btn btn-primary btn-small" type="submit">
+                                    🛒 Vender
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div class="card" id="ventas">
+                <h2>🛒 Historial de ventas</h2>
+              <div class="pdf-actions">
+            <a class="btn btn-blue" href="/ventas/pdf/hoy">📄 Hoy</a>
+            <a class="btn btn-blue" href="/ventas/pdf/mes">📄 Este mes</a>
+            <a class="btn btn-blue" href="/ventas/pdf/anio">📄 Este año</a>
+            <a class="btn btn-blue" href="/ventas/pdf/todo">📄 Todo</a>
+        </div>
+
+<br>
+
+<br><br>
+                <table class="table">
+    <tr>
+        <th>ID Venta</th>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Total</th>
+        <th>Usuario</th>
+        <th>Fecha</th>
+    </tr>
+
+    <tbody id="tabla-ventas">
+        {% for venta in ventas %}
+        <tr>
+            <td>{{ venta.id }}</td>
+            <td>{{ venta.producto.nombre }}</td>
+            <td>{{ venta.cantidad }}</td>
+            <td>${{ venta.total }}</td>
+            <td>{{ venta.usuario.nombre }}</td>
+            <td>{{ venta.fecha.strftime("%d/%m/%Y %H:%M") }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+<script>
+    const formProducto = document.getElementById("form-producto");
+    const toast = document.getElementById("toast");
+
+    function mostrarToast(mensaje, tipo) {
+        toast.textContent = mensaje;
+        toast.className = "toast show " + tipo;
+
+        setTimeout(() => {
+            toast.className = "toast";
+        }, 2500);
+    }
+
+    formProducto.addEventListener("submit", async function(evento) {
+        evento.preventDefault();
+
+        const datos = {
+            nombre: formProducto.nombre.value,
+            precio: formProducto.precio.value,
+            stock: formProducto.stock.value
+        };
+
+        const respuesta = await fetch("/api/productos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        });
+
+        if (respuesta.ok) {
+            mostrarToast("✅ Producto agregado correctamente", "success");
+
+            setTimeout(() => {
+                location.reload();
+            }, 900);
+        } else {
+            mostrarToast("❌ No se pudo agregar el producto", "error");
+        }
+    });
+
+
+    const btnUbicacion = document.getElementById("btn-ubicacion");
+
+if (btnUbicacion) {
+    btnUbicacion.addEventListener("click", function() {
+
+        if (!navigator.geolocation) {
+            mostrarToast("❌ Tu navegador no soporta geolocalización", "error");
+            return;
+        }
+
+        mostrarToast("📍 Solicitando ubicación...", "success");
+
+        navigator.geolocation.getCurrentPosition(
+            async function(posicion) {
+
+                const datosUbicacion = {
+                    latitud: posicion.coords.latitude,
+                    longitud: posicion.coords.longitude
+                };
+
+                const respuesta = await fetch("/api/ubicacion", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(datosUbicacion)
+                });
+
+                if (respuesta.ok) {
+                    mostrarToast("✅ Ubicación actualizada", "success");
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 900);
+                } else {
+                    mostrarToast("❌ No se pudo actualizar la ubicación", "error");
+                }
+            },
+            function() {
+                mostrarToast("⚠️ No se pudo obtener la ubicación", "error");
+            }
+        );
+    });
+}
+
+
+
+document.querySelectorAll(".stat-card h3").forEach(numero=>{
+
+    const final=parseFloat(numero.innerText.replace("$","").replace(",",""));
+
+    if(isNaN(final))
+        return;
+
+    let actual=0;
+
+    const incremento=final/60;
+
+    const timer=setInterval(()=>{
+
+        actual+=incremento;
+
+        if(actual>=final){
+
+            numero.innerText=
+                numero.innerText.includes("$")
+                ?"$"+final.toFixed(0)
+                :Math.round(final);
+
+            clearInterval(timer);
+            return;
+        }
+
+        numero.innerText=
+            numero.innerText.includes("$")
+            ?"$"+Math.round(actual)
+            :Math.round(actual);
+
+    },15);
+
+});
+
+
+document.querySelectorAll(".form-venta").forEach(formVenta => {
+
+    formVenta.addEventListener("submit", async function(evento) {
+        evento.preventDefault();
+
+        const productoId = formVenta.dataset.productoId;
+        const cantidad = formVenta.cantidad.value;
+
+        const respuesta = await fetch(`/api/productos/${productoId}/vender`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                cantidad: cantidad
+            })
+        });
+
+        const datos = await respuesta.json();
+
+        if (respuesta.ok) {
+            const stockSpan = document.getElementById(`stock-${productoId}`);
+
+            stockSpan.textContent = datos.producto.stock;
+
+            if (datos.producto.stock <= 5) {
+                stockSpan.className = "stock-low stock-flash";
+            } else {
+                stockSpan.className = "stock-ok stock-flash";
+            }
+
+            formVenta.reset();
+
+            mostrarToast("✅ Venta registrada correctamente", "success");
+            const tablaVentas = document.getElementById("tabla-ventas");
+
+            const nuevaFila = document.createElement("tr");
+            nuevaFila.classList.add("row-flash");
+
+            nuevaFila.innerHTML = `
+                <td>${datos.venta.id}</td>
+                <td>${datos.venta.producto}</td>
+                <td>${datos.venta.cantidad}</td>
+                <td>$${datos.venta.total}</td>
+                <td>{{ session["usuario_nombre"] }}</td>
+                <td>${datos.venta.fecha}</td>
+            `;
+
+            tablaVentas.prepend(nuevaFila);
+                        setTimeout(() => {
+                            stockSpan.classList.remove("stock-flash");
+                        }, 900);
+                    } else {
+                        mostrarToast("❌ " + datos.error, "error");
+                    }
+                });
+
+            });
+
+
+
+
+console.log("JS de ventas cargado");
+
+document.querySelectorAll(".form-venta").forEach(formVenta => {
+
+    console.log("Formulario de venta detectado");
+
+    formVenta.addEventListener("submit", async function(evento) {
+        evento.preventDefault();
+
+        console.log("Submit venta capturado");
+
+        const productoId = formVenta.dataset.productoId;
+        const cantidad = formVenta.cantidad.value;
+
+        const respuesta = await fetch(`/api/productos/${productoId}/vender`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                cantidad: cantidad
+            })
+        });
+
+        const datos = await respuesta.json();
+
+        if (respuesta.ok) {
+            const stockSpan = document.getElementById(`stock-${productoId}`);
+
+            stockSpan.textContent = datos.producto.stock;
+
+            if (datos.producto.stock <= 5) {
+                stockSpan.className = "stock-low stock-flash";
+            } else {
+                stockSpan.className = "stock-ok stock-flash";
+            }
+
+            formVenta.reset();
+
+            mostrarToast("✅ Venta registrada correctamente", "success");
+
+            setTimeout(() => {
+                stockSpan.classList.remove("stock-flash");
+            }, 900);
+        } else {
+            mostrarToast("❌ " + datos.error, "error");
+        }
+    });
+
+});
+
+
+
+</script>
+
+
+
+
+
+<footer class="footer">
+
+    <div>
+        <strong>SmartGastro MVP</strong>
+    </div>
+
+    <div>
+        Analista de Sistemas · Flask · SQLAlchemy · Jinja · Open-Meteo
+    </div>
+
+    <div>
+        © 2026 - Gabriel Toledo
+    </div>
+
+</footer>
+
+
+
+
+</body>
+</html>
