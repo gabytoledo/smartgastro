@@ -8,9 +8,15 @@ Sistema de gestión gastronómica desarrollado como proyecto académico. Permite
 
 ![Pantalla Principal](tp/images/2.png)
 
+### Login
+![Gestión del Sistema](tp/images/1.png)
+
+
+
 ### Gestión del Sistema
 
-![Gestión del Sistema](tp/images/1.png)
+![Gestión del Sistema](tp/images/3.png)
+
 
 ---
 
